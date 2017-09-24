@@ -1,4 +1,7 @@
 *.swp
+*.pyc
+*.log
+*.html
 test.html
 test_client.py
 test_data.txt

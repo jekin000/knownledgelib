@@ -1,1 +1,1 @@
-git commit -m '[001] files structure'
+git commit -m '[002] client communicate with server'
