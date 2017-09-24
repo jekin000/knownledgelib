@@ -5,7 +5,6 @@ import socket
 import parser
 import json
 
-
 class EchoHandler(asyncore.dispatcher_with_send):
     def handle_read(self):
         logger = logging.getLogger('parser')
@@ -14,6 +13,7 @@ class EchoHandler(asyncore.dispatcher_with_send):
             msg = json.loads(data)
             p = parser.Parser(logger) 
             res = p.parse_html(msg['layer'],msg['filename'])
+            l = []
             if res:
                 msg = {}
                 layer = res[0]
@@ -21,7 +21,8 @@ class EchoHandler(asyncore.dispatcher_with_send):
                 for u in urls:
                     msg['layer'] = layer
                     msg['url']   = u
-                    self.send(json.dumps(msg))
+                    l.append(msg)
+                self.send(json.dumps(l))
             else:
                 logger.info('No expected url')
             
