@@ -22,7 +22,10 @@ class EchoHandler(asyncore.dispatcher_with_send):
                     msg['layer'] = layer
                     msg['url']   = u
                     l.append(msg)
-                self.send(json.dumps(l))
+                if len(l) > 0:
+                    self.send(json.dumps(l))
+                else:
+                    logger.info('Can not get url from {}'.format(msg['filename']))
             else:
                 logger.info('No expected url')
             
