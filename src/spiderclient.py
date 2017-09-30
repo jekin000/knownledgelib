@@ -26,7 +26,7 @@ class SpiderClient(asyncore.dispatcher):
         self.logger.setLevel(logging.DEBUG)
 
         self.spider = spider.Spider(self.logger)
-        self.messages=[{'layer':0,'url':'http://www.baike.com/wiki/%E6%A2%85%E8%A5%BFk'}]
+        self.messages=[{'layer':0,'url':'http://www.baike.com/wiki/%E6%A2%85%E8%A5%BF&prd=button_doc_entry'}]
         self.create_socket(socket.AF_INET,socket.SOCK_STREAM)
         self.connect((host,port))
     def handle_connect(self):
