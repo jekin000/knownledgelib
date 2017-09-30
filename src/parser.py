@@ -2,16 +2,30 @@ import HTMLParser
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+import DataStore
 
-
+title = []
 links = []
 infos = []
 tagstack = []
 
-def eat_attrs(atts,outputlist,attname):
+def judgelink(url):
+    if url.find('http')>=0 and url.find('baike.com')>=0:
+        if url.find('jpg')>=0 or url.find('tupian')>=0 or url.find('help')>=0 or url.find('passport')>=0 or url.find('zhaopin')>=0:
+            return False
+        return True
+    else:
+        return False 
+
+def eat_attrs(atts,outputlist,attname,judge=None):
     for a in atts:
         if a[0].lower() == attname:
-            outputlist.append(a[0])
+            if judge:
+                if judge(a[1]):
+                    outputlist.append(a[1])
+            else:
+                outputlist.append(a[1])
+                
 
 class ParseHTMLStructure(HTMLParser.HTMLParser):
     def handle_starttag(self,tag,attrs):
@@ -21,15 +35,19 @@ class ParseHTMLStructure(HTMLParser.HTMLParser):
             tagstack.append(tag)
         elif tag.lower()=='p' and len(tagstack)==0: 
             for att in attrs: 
-                print att
                 if att[0].lower()=='id' and att[1]=='openCatp':
-                    print 'get it==================>'
                     tagstack.append(tag)
+        elif tag.lower() == 'a':
+            eat_attrs(attrs,links,'href',judgelink)
+        elif tag.lower() == 'title':
+            tagstack.append(tag)
            
     def handle_endtag(self,tag):
         if len(tagstack) > 0:
             tagstack.pop()
-    def handle_data(self,data): pass
+    def handle_data(self,data):
+        if len(tagstack)>0 and tagstack[-1:][0]=='title':
+            title.append(data.split('_')[0])
 
 class Parser:
     def __init__(self,logger):
@@ -53,7 +71,14 @@ class Parser:
 
     def do_parse(self,no,html):
         ParseHTMLStructure().feed(html) 
-        print 'parse end'
-        for i in infos:
-            print i
-	    
+        response = []
+        for lk in links:
+            if not DataStore.isDuplicate(self.logger,lk): 
+                response.append(lk)
+
+        if len(title)>0 and len(infos)>0:
+            DataStore.save(self.logger,title[0],infos)
+        links = []
+        infos = []
+        title = []
+        return (no+1,response)

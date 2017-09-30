@@ -14,7 +14,7 @@ class SpiderClient(asyncore.dispatcher):
     def __init__(self,host,port):
         asyncore.dispatcher.__init__(self)
         self.interval = SEND_INTERVAL
-        self.recvbuffsize = 10240
+        self.recvbuffsize = 1024000
 
         self.log_file = 'spider.log'
         handler = logging.handlers.RotatingFileHandler(self.log_file, maxBytes = 1024*1024, backupCount = 5)
@@ -26,7 +26,7 @@ class SpiderClient(asyncore.dispatcher):
         self.logger.setLevel(logging.DEBUG)
 
         self.spider = spider.Spider(self.logger)
-        self.messages=[{'layer':0,'url':'http://www.baike.com/wiki/%E6%A2%85%E8%A5%BF&prd=button_doc_entry'}]
+        self.messages=[{'layer':0,'url':'http://www.baike.com/wiki/%E6%A2%85%E8%A5%BF'}]
         self.create_socket(socket.AF_INET,socket.SOCK_STREAM)
         self.connect((host,port))
     def handle_connect(self):
@@ -41,6 +41,7 @@ class SpiderClient(asyncore.dispatcher):
                 urls = json.loads(data)
             except exceptions.ValueError as e:
                 self.logger.error('json_decode parser info fail. info='+data) 
+                traceback.print_exc()
                 return
             else:
                 self.messages.extend(urls)
@@ -52,6 +53,9 @@ class SpiderClient(asyncore.dispatcher):
             t1 = datetime.datetime.now()
             tmp = self.messages.pop(0)
             res = self.spider.get_html(tmp['layer'],tmp['url'])
+            if not res:
+                return
+
             data = {} 
             data['layer'] = res[0]
             data['filename'] = res[1]
