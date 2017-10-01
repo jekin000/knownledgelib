@@ -4,6 +4,7 @@ import asyncore
 import socket
 import parser
 import json
+import datetime
 
 class EchoHandler(asyncore.dispatcher_with_send):
     def handle_read(self):
@@ -12,16 +13,23 @@ class EchoHandler(asyncore.dispatcher_with_send):
         if data:
             msg = json.loads(data)
             p = parser.Parser(logger) 
+            t1 = datetime.datetime.now()
             res = p.parse_html(msg['layer'],msg['filename'])
+            t2 = datetime.datetime.now()
+            interval = (t2-t1).microseconds*1.0/1000
+            logger.info('parse {} finish. cost=[{}]ms'.format(msg['filename']
+                            ,str(interval))
+                        )
+
             l = []
             if res:
-                msg = {}
                 layer = res[0]
                 urls  = res[1]
                 for u in urls:
-                    msg['layer'] = layer
-                    msg['url']   = u
-                    l.append(msg)
+                    dt = {}
+                    dt['layer'] = layer
+                    dt['url']   = u
+                    l.append(dt)
                 if len(l) > 0:
                     self.send(json.dumps(l))
                 else:

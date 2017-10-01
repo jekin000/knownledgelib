@@ -47,6 +47,8 @@ class SpiderClient(asyncore.dispatcher):
                 self.messages.extend(urls)
 
     def writable(self):
+        if len(self.messages) == 0:
+            self.logger.debug('free')
         return (len(self.messages) > 0)
 
     def handle_write(self):
@@ -73,6 +75,7 @@ client = SpiderClient('localhost',9999)
 try:
     asyncore.loop(timeout=5)
 except:
+    traceback.print_exc()
     print 'Spider Close'
 
 

@@ -78,7 +78,13 @@ class Parser:
 
         if len(title)>0 and len(infos)>0:
             DataStore.save(self.logger,title[0],infos)
-        links = []
-        infos = []
-        title = []
-        return (no+1,response)
+
+        del infos[:]
+        del links[:]
+        del title[:]
+        if len(response) >= 2:
+            return (no+1,response[0:2])
+        else:
+            self.logger.info('no urls found')
+            return (no+1,[])
+
