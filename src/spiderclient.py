@@ -8,8 +8,10 @@ import time
 import traceback
 import exceptions
 import datetime
+import exceptions
 
-SEND_INTERVAL = 0.1
+SEND_INTERVAL = 1
+
 class SpiderClient(asyncore.dispatcher):
     def __init__(self,host,port):
         asyncore.dispatcher.__init__(self)
@@ -36,15 +38,22 @@ class SpiderClient(asyncore.dispatcher):
 
     def handle_read(self):
         data = self.recv(self.recvbuffsize)
-        if data:
-            try:
-                urls = json.loads(data)
-            except exceptions.ValueError as e:
-                self.logger.error('json_decode parser info fail. info='+data) 
-                traceback.print_exc()
-                return
-            else:
-                self.messages.extend(urls)
+        if data and len(data)>0:
+            layerandurls = data.split('|')
+            for lu in layerandurls:
+                dt = {}
+                sp = lu.split(',')    
+                if len(sp) == 2:
+                    try:
+                        dt['layer'] = int(sp[0])
+                        dt['url']   = sp[1]
+                        self.messages.append(dt)
+                    except exceptions.ValueError as e:
+                        self.logger.error('Unexpected url {}'.format(lu))
+                else:
+                    self.logger.error('Unexpected url {}'.format(lu))
+        else:
+            self.logger.info('no msg from parser.')
 
     def writable(self):
         if len(self.messages) == 0:
@@ -68,7 +77,7 @@ class SpiderClient(asyncore.dispatcher):
                             ,data['filename']
                             ,str(interval))
                         )
-            #time.sleep(self.interval)
+            time.sleep(self.interval)
 
 
 client = SpiderClient('localhost',9999)

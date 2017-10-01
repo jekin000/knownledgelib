@@ -82,9 +82,13 @@ class Parser:
         del infos[:]
         del links[:]
         del title[:]
-        if len(response) >= 2:
-            return (no+1,response[0:2])
-        else:
+        if len(response) == 0:
             self.logger.info('no urls found')
-            return (no+1,[])
+            return None
 
+        layer = str(no+1)
+        msg = ''
+        for url in response:
+            msg = msg+layer+','+url+'|'
+        msg = msg[:-1]
+        return msg
